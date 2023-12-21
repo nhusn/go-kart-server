@@ -1,0 +1,38 @@
+const cart = require('../Models/cartModel')
+
+// addToCart
+
+exports.addToCartController = async (req,res)=>{
+    const userId = req.payload
+    const {id,title,price,description,category,image,rating,quantity}= req.body
+    try{
+        const existingProduct = await cart.findOne({id,userId})
+        if(existingProduct){
+            existingProduct.quantity+=1
+            existingProduct.grandTotal = existingProduct.quantity*existingProduct.price
+            await existingProduct.save()
+            res.status(200).json('items added to your cart')
+        }else{
+            const newProduct = new cart({
+                id,title,price,description,category,image,rating,quantity,grandTotal:price,userId
+            })
+            await newProduct.save()
+            res.status(200).json('item added to your cart')
+        }
+    }catch(err){
+        res.status(401).json(err)
+    }
+}
+
+// getcart
+
+exports.getCartController = async (req,res)=>{
+    const userId = req.payload
+    try{
+        const allproducts = await cart.find({userId})
+        console.log(allproducts);
+        res.status(200).json(allproducts)
+    }catch(err){
+        res.status(401).json(err)
+    }
+}
